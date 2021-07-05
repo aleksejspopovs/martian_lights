@@ -79,6 +79,9 @@ class MartianLights:
 
 		return id_
 
+	def namespace(self, namespace):
+		return NamespacedML(self, namespace)
+
 	def delete_ghost_resources(self):
 		self._logger.info('Checking for ghost resources.')
 
@@ -101,3 +104,19 @@ class MartianLights:
 	def save_state(self):
 		self._logger.info('Updating local state.')
 		self._state.save()
+
+
+class NamespacedML:
+	def __init__(self, ml, namespace):
+		self._ml = ml
+		self._namespace = namespace
+
+	def resource(self, kind, name, desired_attributes):
+		return self._ml.resource(
+			kind,
+			f'{self._namespace}/{name}',
+			desired_attributes,
+		)
+
+	def namespace(self, namespace):
+		return NamespacedML(self._ml, f'{self._namespace}/{namespace}')
