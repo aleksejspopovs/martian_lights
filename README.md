@@ -18,7 +18,7 @@ An ML config is just a Python script. Every ML config needs to declare a functio
 
 These can also be set with the environment variables `HUE_STATE_PATH`, `HUE_BRIDGE_ADDR`, and `HUE_BRIDGE_USERNAME`.
 
-The `run` function is where the fun happens. It takes a single parameter (say, `ml`) of type `MartianLights`, which exposes the function `resource(kind, name, attributes)`. You can call `ml.resource` to tell ML that you would like a resource of a given kind to exist with the given parameters. The name is not sent to the Bridge, it is only used to store information related to this resource in the statefile.
+The `run` function is where the fun happens. It takes a single parameter (say, `ml`) of type `MartianLights`, which exposes the function `resource(kind, name, attributes)`. You can call `ml.resource` to tell ML that you would like a resource of a given kind to exist with the given parameters. The name is not sent to the Bridge, it is only used to persist the created resource's ID in the statefile.
 
 A simple config file might look like this:
 
@@ -71,7 +71,7 @@ $ martian_lights test.py
 
 # Advanced usage
 
-`ml.namespace('foo')` will return a proxy object that behaves just like `ml`, but prefixes all resource names with `foo`, so `ml.namespace('foo').resource('rule', 'bar', ...)` will create a rule that is called `foo/bar` in the state file. This allows you to write modular code that can call resources whatever it wants without worrying about some other part of the code using the same name.
+`ml.namespace('foo')` will return a proxy object that behaves just like `ml`, but prefixes all resource names with `foo`, so `ml.namespace('foo').resource('rules', 'bar', ...)` will create a rule that is called `foo/bar` in the state file. This allows you to write modular code that can call resources whatever it wants without worrying about some other part of the code using the same name.
 
 The module `martian_lights.helpers` contains some functionality that might be helpful when defining your resources, while `martian_lights.behaviors` contains ready-made sets of Bridge rules for complex behaviors, like making a rotary switch adjust the brightness of your lights or cycling through scenes.
 
