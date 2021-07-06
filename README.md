@@ -6,7 +6,7 @@ ML uses the [Hue Bridge API](https://developers.meethue.com/), but it is not dev
 
 # Installing ML
 
-TODO
+`pip install .` should work to put `martian_lights` into your `PATH`.
 
 # Writing a config
 
@@ -36,7 +36,7 @@ Create an empty state file it can use and run ML:
 
 ```
 $ echo "{}" > state.json
-$ python -m martian_lights.main test.py
+$ martian_lights test.py
 [INFO] groups.my_basement_group: Refreshing.
 [INFO] groups.my_basement_group: Creating.
 [INFO] groups.my_basement_group: Created with ID 4.
@@ -49,7 +49,7 @@ There you go, ML has created your group for you! Note that the ID for the group 
 If you run ML again, nothing will happen, because the group already exists. ML knows that because it stores the association between the name `my_basement_group` and the ID 4 in the state file:
 
 ```
-$ python -m martian_lights.main test.py
+$ martian_lights test.py
 [INFO] groups.my_basement_group: Refreshing.
 [INFO] groups.my_basement_group: Found ID in state: 4
 [INFO] groups.my_basement_group: Resource is up to date, no action needed.
@@ -60,7 +60,7 @@ $ python -m martian_lights.main test.py
 If you find a spare bulb and decide to add it to the group, just change the `'lights'` parameter in your config and ML will pick up the change:
 
 ```
-$ python -m martian_lights.main test.py
+$ martian_lights test.py
 [INFO] groups.my_basement_group: Refreshing.
 [INFO] groups.my_basement_group: Found ID in state: 4
 [INFO] groups.my_basement_group: Attributes ['lights'] are incorrect, updating.
