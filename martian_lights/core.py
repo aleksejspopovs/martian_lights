@@ -36,6 +36,7 @@ class MartianLights:
 
 	def resource(self, kind, name, desired_attributes):
 		log = lambda msg, *args: self._logger.info(f'{kind}.{name}: {msg}', *args)
+		log_error = lambda msg, *args: self._logger.error(f'{kind}.{name}: {msg}', *args)
 
 		if self._resource_is_live(kind, name):
 			raise DuplicateResourceError(f'{kind}.{name}')
@@ -64,15 +65,28 @@ class MartianLights:
 				log('Resource is up to date, no action needed.')
 			else:
 				log('Attributes %s are incorrect, updating.', diff_attributes)
-				self._api.update_resource(
-					kind,
-					id_,
-					{k:desired_attributes[k] for k in diff_attributes}
-				)
+				attributes_to_set = {k:desired_attributes[k] for k in diff_attributes}
+
+				try:
+					self._api.update_resource(
+						kind,
+						id_,
+						attributes_to_set
+					)
+				except ApiError as error:
+					log_error('Could not update resource with attributes: %s', attributes_to_set)
+					raise error
+
 				log('Updated.')
 		else:
 			log('Creating.')
-			id_ = self._api.create_resource(kind, desired_attributes)
+
+			try:
+				id_ = self._api.create_resource(kind, desired_attributes)
+			except ApiError as error:
+				log_error('Could not create resource with attributes: %s', desired_attributes)
+				raise error
+
 			log('Created with ID %s.', id_)
 
 			self._state.store_resource_id(kind, name, id_)
