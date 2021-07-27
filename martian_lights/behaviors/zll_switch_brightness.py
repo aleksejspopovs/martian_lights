@@ -21,11 +21,13 @@ def zll_switch_brightness(
 	lastupdated_addr = f'/sensors/{switch_sensor_id}/state/lastupdated'
 	group_action_addr = f'/groups/{group_id}/action'
 
-	for name, button, event_type, bri_inc in [
-		('slow_up', ZLLSwitchButton.DIM_UP, ZLLSwitchEventType.INITIAL_PRESS, 30),
-		('fast_up', ZLLSwitchButton.DIM_UP, ZLLSwitchEventType.HOLD, 56),
-		('slow_down', ZLLSwitchButton.DIM_DOWN, ZLLSwitchEventType.INITIAL_PRESS, -30),
-		('fast_down', ZLLSwitchButton.DIM_DOWN, ZLLSwitchEventType.HOLD, -56),
+	for name, button, event_type, bri_inc, delay in [
+		('slow_up', ZLLSwitchButton.DIM_UP, ZLLSwitchEventType.INITIAL_PRESS, 51, 10),
+		('fast_up', ZLLSwitchButton.DIM_UP, ZLLSwitchEventType.HOLD, 51, 10),
+		('stop_up', ZLLSwitchButton.DIM_UP, ZLLSwitchEventType.LONG_RELEASE, 0, 4),
+		('slow_down', ZLLSwitchButton.DIM_DOWN, ZLLSwitchEventType.INITIAL_PRESS, -51, 10),
+		('fast_down', ZLLSwitchButton.DIM_DOWN, ZLLSwitchEventType.HOLD, -51, 10),
+		('stop_down', ZLLSwitchButton.DIM_DOWN, ZLLSwitchEventType.LONG_RELEASE, 0, 4),
 	]:
 		ml.resource(
 			'rules',
@@ -43,7 +45,7 @@ def zll_switch_brightness(
 				],
 				'actions': [action_put(
 					group_action_addr,
-					{'transitiontime': 9, 'bri_inc': bri_inc},
+					{'transitiontime': delay, 'bri_inc': bri_inc},
 				)],
 			}
 		)
