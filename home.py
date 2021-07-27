@@ -2,6 +2,7 @@ from martian_lights.behaviors.rotary_brightness import rotary_brightness
 from martian_lights.behaviors.subset_cycling import subset_cycling
 from martian_lights.behaviors.time_based_scene_cycling import time_based_scene_cycling
 from martian_lights.behaviors.zll_switch_brightness import zll_switch_brightness
+from martian_lights.helpers.schema import condition
 from martian_lights.helpers.zll_switch import *
 
 state_path = 'state.json'
@@ -37,7 +38,7 @@ def run(ml):
 	living_room = ml.namespace('living_room')
 	living_room_group_id = 3
 	living_room_switch_id = 2
-	time_based_scene_cycling(
+	living_room_scene_cycle_state_id = time_based_scene_cycling(
 		living_room.namespace('scenes'),
 		switch_sensor_id=living_room_switch_id,
 		group_id=living_room_group_id,
@@ -62,7 +63,11 @@ def run(ml):
 	subset_cycling(
 		living_room.namespace('subset'),
 		switch_sensor_id=living_room_switch_id,
-		event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
+		advance_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
+		reset_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
+		extra_on_conditions=[
+			condition(f'/sensors/{living_room_scene_cycle_state_id}/state/status', 'gt', '1'),
+		],
 		group_id=living_room_group_id,
 		subsets=[
 			["1", "2", "3", "9"],

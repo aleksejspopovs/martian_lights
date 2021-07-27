@@ -3,9 +3,11 @@ from martian_lights.helpers.schema import action_put, condition, virtual_sensor
 def subset_cycling(
 	ml,
 	switch_sensor_id,
-	event,
+	advance_event,
+	reset_event,
 	group_id,
 	subsets,
+	extra_on_conditions=None,
 	display_name='Subsets'
 ):
 	"""
@@ -14,6 +16,8 @@ def subset_cycling(
 
 	Based on the official Hue app's rules for the Hue Dimmer.
 	"""
+	extra_on_conditions = extra_on_conditions or []
+
 	event_addr = f'/sensors/{switch_sensor_id}/state/buttonevent'
 	lastupdated_addr = f'/sensors/{switch_sensor_id}/state/lastupdated'
 	group_action_addr = f'/groups/{group_id}/action'
@@ -43,18 +47,38 @@ def subset_cycling(
 				'name': f'{display_name} advance {i}',
 				'status': 'enabled',
 				'recycle': False,
-				'conditions': [
-					condition(lastupdated_addr, 'dx'),
-					condition(event_addr, 'eq', event),
-					condition(cycling_state_status_addr, 'eq', str(i)),
-					condition(any_on_addr, 'eq', 'true'),
-				],
+				'conditions': (
+					[
+						condition(lastupdated_addr, 'dx'),
+						condition(event_addr, 'eq', advance_event),
+						condition(cycling_state_status_addr, 'eq', str(i)),
+						condition(any_on_addr, 'eq', 'true'),
+					]
+					+ extra_on_conditions
+				),
 				'actions': (
 					[
 						action_put(f'/lights/{light_id}/state', {'on': light_id in next_subset})
 						for light_id in all_lights
 					]
 					+ [action_put(cycling_state_addr, {'status': next_i})]
-				)
+				),
 			}
 		)
+
+	ml.resource(
+		'rules',
+		'reset',
+		{
+			'name': f'{display_name} reset',
+			'status': 'enabled',
+			'recycle': False,
+			'conditions': [
+				condition(lastupdated_addr, 'dx'),
+				condition(event_addr, 'eq', reset_event),
+			],
+			'actions': [action_put(cycling_state_addr, {'status': 0})],
+		}
+	)
+
+	return cycling_state_id

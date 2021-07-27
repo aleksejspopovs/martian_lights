@@ -123,3 +123,5 @@ def time_based_scene_cycling(
 				})]
 			}
 		)
+
+	return cycling_state_id
