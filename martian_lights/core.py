@@ -93,6 +93,9 @@ class MartianLights:
 
 		return id_
 
+	def read_resource(self, kind, id_):
+		return self._api.read_resource(kind, id_)
+
 	def namespace(self, namespace):
 		return NamespacedML(self, namespace)
 
@@ -131,6 +134,9 @@ class NamespacedML:
 			f'{self._namespace}/{name}',
 			desired_attributes,
 		)
+
+	def read_resource(self, kind, id_):
+		return self._ml.read_resource(kind, id_)
 
 	def namespace(self, namespace):
 		return NamespacedML(self._ml, f'{self._namespace}/{namespace}')
