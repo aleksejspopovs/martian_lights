@@ -7,22 +7,21 @@ from martian_lights.helpers.zll_switch import *
 
 state_path = 'state.json'
 
-def run(ml):
-	bathroom = ml.namespace('bathroom')
-	bathroom_group_id = 2
+def make_bathroom(ml):
+	group_id = 2
 	rotary_brightness(
-		bathroom.namespace('rot_bri'),
+		ml.namespace('rot_bri'),
 		rotary_sensor_id=14, # Lutron Aurora's rotary switch
-		group_id=bathroom_group_id,
+		group_id=group_id,
 		display_name='Bathroom rotary',
 		slow_rotation_turns_lights_to=None,
 		fast_rotation_turns_lights_to=None,
 	)
 
 	time_based_scene_cycling(
-		bathroom.namespace('scenes'),
+		ml.namespace('scenes'),
 		switch_sensor_id=15, # Lutron Aurora's big button,
-		group_id=bathroom_group_id,
+		group_id=group_id,
 		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
 		off_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
 		cycle_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.LONG_RELEASE),
@@ -35,15 +34,16 @@ def run(ml):
 		display_name='Bathroom scenes',
 	)
 
-	living_room = ml.namespace('living_room')
-	living_room_group_id = 3
-	living_room_switch_id = 2
-	living_room_scene_cycle_state_id = time_based_scene_cycling(
-		living_room.namespace('scenes'),
-		switch_sensor_id=living_room_switch_id,
-		group_id=living_room_group_id,
+
+def make_living_room(ml):
+	group_id = 3
+	switch_id = 42
+	scene_cycle_state_id = time_based_scene_cycling(
+		ml.namespace('scenes'),
+		switch_sensor_id=switch_id,
+		group_id=group_id,
 		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
-		off_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
+		off_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
 		cycle_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.LONG_RELEASE),
 		scenes=[
 			('T07:00:00/T12:00:00', '6VE4rvAva5a3YLd'), # Energize
@@ -54,25 +54,58 @@ def run(ml):
 	)
 
 	zll_switch_brightness(
-		living_room.namespace('bri'),
-		switch_sensor_id=living_room_switch_id,
-		group_id=living_room_group_id,
+		ml.namespace('bri'),
+		switch_sensor_id=switch_id,
+		group_id=group_id,
 		display_name='Living room brightness',
 	)
 
 	subset_cycling(
-		living_room.namespace('subset'),
-		switch_sensor_id=living_room_switch_id,
-		advance_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
-		reset_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
+		ml.namespace('subset'),
+		switch_sensor_id=switch_id,
+		advance_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
+		reset_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
 		extra_on_conditions=[
-			condition(f'/sensors/{living_room_scene_cycle_state_id}/state/status', 'gt', '1'),
+			condition(f'/sensors/{scene_cycle_state_id}/state/status', 'gt', '1'),
 		],
-		group_id=living_room_group_id,
+		group_id=group_id,
 		subsets=[
-			["1", "2", "3", "9"],
+			["1", "2", "3", "9", "10"],
 			["1", "2", "3"],
-			["9"],
+			["9", "10"],
 		],
 		display_name='Living room subset',
 	)
+
+
+def make_bedroom(ml):
+	group_id = 4
+	switch_id = 2
+	scene_cycle_state_id = time_based_scene_cycling(
+		ml.namespace('scenes'),
+		switch_sensor_id=switch_id,
+		group_id=group_id,
+		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
+		off_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.INITIAL_PRESS),
+		cycle_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
+		scenes=[
+			('T07:00:00/T12:00:00', '4F0yl9YDbgf29Aa'), # Energize
+			('T12:00:00/T19:00:00', '5wmuhH4G9GFJMyV'), # Relax
+			('T20:00:00/T21:00:00', 'YKF5lteVdMkcfJN'), # Dimmed
+			('T22:00:00/T07:00:00', 'rT8HfqWAYtT50U5'), # Nightlight
+		],
+		display_name='Living room scenes',
+	)
+
+	zll_switch_brightness(
+		ml.namespace('bri'),
+		switch_sensor_id=switch_id,
+		group_id=group_id,
+		display_name='Bedroom brightness',
+	)
+
+
+def run(ml):
+	make_bathroom(ml.namespace('bathroom'))
+	make_living_room(ml.namespace('living_room'))
+	make_bedroom(ml.namespace('bedroom'))
