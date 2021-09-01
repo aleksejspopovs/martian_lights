@@ -2,7 +2,7 @@ from martian_lights.helpers.schema import action_put, condition, virtual_sensor
 
 def time_based_scene_cycling(
 	ml,
-	switch_sensor_id,
+	switch_sensor_ids,
 	group_id,
 	scenes,
 	on_event=None,
@@ -38,61 +38,67 @@ def time_based_scene_cycling(
 	cycling_state_addr = f'/sensors/{cycling_state_id}/state'
 	cycling_state_status_addr = f'{cycling_state_addr}/status'
 
-	event_addr = f'/sensors/{switch_sensor_id}/state/buttonevent'
-	lastupdated_addr = f'/sensors/{switch_sensor_id}/state/lastupdated'
+	sensor_addrs = [
+		(f'/sensors/{x}/state/buttonevent', f'/sensors/{x}/state/lastupdated')
+		for x in switch_sensor_ids
+	]
+
 	any_on_addr = f'/groups/{group_id}/state/any_on'
 	group_action_addr = f'/groups/{group_id}/action'
 
 	if on_event is not None:
-		ml.resource(
-			'rules',
-			'on',
-			{
-				'name': f'{display_name} on',
-				'conditions': [
-					condition(event_addr, 'eq', on_event),
-					condition(lastupdated_addr, 'dx'),
-					condition(any_on_addr, 'eq', 'false')
-				],
-				'actions': [action_put(cycling_state_addr, {'status': 1})]
-			}
-		)
-
-	if off_event is not None:
-		ml.resource(
-			'rules',
-			'off',
-			{
-				'name': f'{display_name} off',
-				'conditions': [
-					condition(event_addr, 'eq', off_event),
-					condition(lastupdated_addr, 'dx'),
-					condition(any_on_addr, 'eq', 'true')
-				],
-				'actions': [
-					action_put(cycling_state_addr, {'status': 0}),
-					action_put(group_action_addr, {'on': False, 'transitiontime': 4}),
-				]
-			}
-		)
-
-	if cycle_event is not None:
-		for i in range(len(scenes)):
+		for sensor_i, (event_addr, lastupdated_addr) in enumerate(sensor_addrs):
 			ml.resource(
 				'rules',
-				f'advance_{i}',
+				f'on_{sensor_i}',
 				{
-					'name': f'{display_name} advance {i}',
+					'name': f'{display_name} on',
 					'conditions': [
-						condition(event_addr, 'eq', cycle_event),
+						condition(event_addr, 'eq', on_event),
 						condition(lastupdated_addr, 'dx'),
-						condition(cycling_state_status_addr ,'eq', str(2 + i))
+						condition(any_on_addr, 'eq', 'false')
+					],
+					'actions': [action_put(cycling_state_addr, {'status': 1})]
+				}
+			)
+
+	if off_event is not None:
+		for sensor_i, (event_addr, lastupdated_addr) in enumerate(sensor_addrs):
+			ml.resource(
+				'rules',
+				f'off_{sensor_i}',
+				{
+					'name': f'{display_name} off',
+					'conditions': [
+						condition(event_addr, 'eq', off_event),
+						condition(lastupdated_addr, 'dx'),
+						condition(any_on_addr, 'eq', 'true')
 					],
 					'actions': [
-						action_put(cycling_state_addr, {'status': 2 + (i + 1) % len(scenes)})
+						action_put(cycling_state_addr, {'status': 0}),
+						action_put(group_action_addr, {'on': False, 'transitiontime': 4}),
 					]
 				}
 			)
+
+	if cycle_event is not None:
+		for sensor_i, (event_addr, lastupdated_addr) in enumerate(sensor_addrs):
+			for i in range(len(scenes)):
+				ml.resource(
+					'rules',
+					f'advance_{i}_{sensor_i}',
+					{
+						'name': f'{display_name} advance {i}',
+						'conditions': [
+							condition(event_addr, 'eq', cycle_event),
+							condition(lastupdated_addr, 'dx'),
+							condition(cycling_state_status_addr ,'eq', str(2 + i))
+						],
+						'actions': [
+							action_put(cycling_state_addr, {'status': 2 + (i + 1) % len(scenes)})
+						]
+					}
+				)
 
 	for i, (time_range, scene_id) in enumerate(scenes):
 		ml.resource(
