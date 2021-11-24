@@ -11,10 +11,8 @@ def subset_cycling(
 	display_name='Subsets'
 ):
 	"""
-	A behavior that makes buttons on the given switch adjust the brightness of
-	the given group.
-
-	Based on the official Hue app's rules for the Hue Dimmer.
+	A behavior that makes a button cycle through a pre-determined list of
+	subsets of lights in a room.
 	"""
 	extra_on_conditions = extra_on_conditions or []
 
