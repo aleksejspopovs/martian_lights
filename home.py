@@ -11,20 +11,20 @@ def make_bathroom(ml):
 	group_id = 2
 	rotary_brightness(
 		ml.namespace('rot_bri'),
-		rotary_sensor_id=14, # Lutron Aurora's rotary switch
+		rotary_sensor_id=14, # Lutron Aurora's rotary dial
 		group_id=group_id,
 		display_name='Bathroom rotary',
 		slow_rotation_turns_lights_to=None,
 		fast_rotation_turns_lights_to=None,
 	)
 
+	switch = ZLLSwitch(15) # the top button on the Aurora
 	time_based_scene_cycling(
 		ml.namespace('scenes'),
-		switch_sensor_ids=[15], # Lutron Aurora's big button,
 		group_id=group_id,
-		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
-		off_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.SHORT_RELEASE),
-		cycle_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.LONG_RELEASE),
+		on_conditions=[switch.top().short_release()],
+		off_conditions=[switch.top().short_release()],
+		cycle_conditions=[switch.top().long_release()],
 		scenes=[
 			('T07:00:00/T12:00:00', 'wjg08c8U6YpmGgp'), # Energize
 			('T12:00:00/T19:00:00', 'ZdoNb40lFPAs19y'), # Bright
@@ -37,15 +37,17 @@ def make_bathroom(ml):
 
 def make_living_room(ml):
 	group_id = 3
-	switch_ids = [42, 46] # couch, dining area
+	switches = [
+		ZLLSwitch(42), # couch
+		ZLLSwitch(46), # dining area
+	]
 
 	scene_cycle_state_id = time_based_scene_cycling(
 		ml.namespace('scenes'),
-		switch_sensor_ids=switch_ids,
 		group_id=group_id,
-		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		off_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		cycle_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.LONG_RELEASE),
+		on_conditions=[s.top().initial_press() for s in switches],
+		off_conditions=[s.top().initial_press() for s in switches],
+		cycle_conditions=[s.bottom().long_release() for s in switches],
 		scenes=[
 			('T07:00:00/T12:00:00', '6VE4rvAva5a3YLd'), # Energize
 			('T12:00:00/T19:00:00', 'n0AH1Tc85L8Rc-3'), # Bright
@@ -54,19 +56,19 @@ def make_living_room(ml):
 		display_name='Living room scenes',
 	)
 
-	for switch_id in switch_ids:
+	for switch in switches:
 		zll_switch_brightness(
-			ml.namespace(f'bri_{switch_id}'),
-			switch_sensor_id=switch_id,
+			ml.namespace(f'bri_{switch.sensor_id}'),
+			switch=switch,
 			group_id=group_id,
 			display_name='Living room brightness',
 		)
 
 	subset_cycling(
 		ml.namespace('subset'),
-		switch_sensor_ids=switch_ids,
-		advance_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
-		reset_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
+		switch_sensor_ids=[s.sensor_id for s in switches],
+		advance_event=zll_switch_event(ZLLSwitchButtonType.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
+		reset_event=zll_switch_event(ZLLSwitchButtonType.TOP, ZLLSwitchEventType.INITIAL_PRESS),
 		extra_on_conditions=[
 			condition(f'/sensors/{scene_cycle_state_id}/state/status', 'gt', '1'),
 		],
@@ -82,14 +84,13 @@ def make_living_room(ml):
 
 def make_bedroom(ml):
 	group_id = 4
-	switch_id = 2
+	switch = ZLLSwitch(2)
 	time_based_scene_cycling(
 		ml.namespace('scenes'),
-		switch_sensor_ids=[switch_id],
 		group_id=group_id,
-		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		off_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.INITIAL_PRESS),
-		cycle_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
+		on_conditions=[switch.top().initial_press()],
+		off_conditions=[switch.bottom().initial_press()],
+		cycle_conditions=[switch.top().initial_press()],
 		scenes=[
 			('T07:00:00/T12:00:00', '4F0yl9YDbgf29Aa'), # Energize
 			('T12:00:00/T19:00:00', '5wmuhH4G9GFJMyV'), # Relax
@@ -101,7 +102,7 @@ def make_bedroom(ml):
 
 	zll_switch_brightness(
 		ml.namespace('bri'),
-		switch_sensor_id=switch_id,
+		switch=switch,
 		group_id=group_id,
 		display_name='Bedroom brightness',
 	)
@@ -109,15 +110,14 @@ def make_bedroom(ml):
 
 def make_office(ml):
 	group_id = 1
-	switch_id = 6
+	switch = ZLLSwitch(6)
 
 	scene_cycle_state_id = time_based_scene_cycling(
 		ml.namespace('scenes'),
-		switch_sensor_ids=[switch_id],
 		group_id=group_id,
-		on_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		off_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		cycle_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.LONG_RELEASE),
+		on_conditions=[switch.top().initial_press()],
+		off_conditions=[switch.top().initial_press()],
+		cycle_conditions=[switch.bottom().long_release()],
 		scenes=[
 			('T07:00:00/T10:00:00', 'aBmkEihL80mswg5'), # Energize
 			('T10:00:00/T17:00:00', '1zpkcVBUVnUMTmi'), # Concentrate
@@ -130,7 +130,7 @@ def make_office(ml):
 
 	zll_switch_brightness(
 		ml.namespace(f'bri'),
-		switch_sensor_id=switch_id,
+		switch=switch,
 		group_id=group_id,
 		display_name='Office brightness',
 	)
