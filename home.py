@@ -13,7 +13,7 @@ def make_bathroom(ml):
 		ml.namespace('rot_bri'),
 		rotary_sensor_id=14, # Lutron Aurora's rotary dial
 		group_id=group_id,
-		display_name='Bathroom rotary',
+		display_name='Bathroom dial',
 		slow_rotation_turns_lights_to=None,
 		fast_rotation_turns_lights_to=None,
 	)
@@ -77,13 +77,17 @@ def make_living_room(ml):
 
 def make_bedroom(ml):
 	group_id = 4
-	switch = ZLLSwitch(2)
+	wall_switch = ZLLSwitch(2)
+	
+	puck_id_rotary = 53
+	puck_button = ZLLSwitch(54)
+	
 	time_based_scene_cycling(
 		ml.namespace('scenes'),
 		group_id=group_id,
-		on_conditions=[switch.top().initial_press()],
-		off_conditions=[switch.bottom().initial_press()],
-		cycle_conditions=[switch.top().initial_press()],
+		on_conditions=[wall_switch.top().initial_press(), puck_button.top().initial_press()],
+		off_conditions=[wall_switch.bottom().initial_press(), puck_button.top().initial_press()],
+		cycle_conditions=[wall_switch.top().initial_press(), puck_button.top().long_release()],
 		scenes=[
 			('T07:00:00/T12:00:00', '4F0yl9YDbgf29Aa'), # Energize
 			('T12:00:00/T19:00:00', '5wmuhH4G9GFJMyV'), # Relax
@@ -95,9 +99,18 @@ def make_bedroom(ml):
 
 	zll_switch_brightness(
 		ml.namespace('bri'),
-		switch=switch,
+		switch=wall_switch,
 		group_id=group_id,
 		display_name='Bedroom brightness',
+	)
+
+	rotary_brightness(
+		ml.namespace('rot_bri'),
+		rotary_sensor_id=puck_id_rotary,
+		group_id=group_id,
+		display_name='Bedroom dial',
+		slow_rotation_turns_lights_to=None,
+		fast_rotation_turns_lights_to=None,
 	)
 
 
