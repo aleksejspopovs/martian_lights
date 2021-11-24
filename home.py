@@ -1,6 +1,6 @@
 from martian_lights.behaviors.rotary_brightness import rotary_brightness
-from martian_lights.behaviors.subset_cycling import subset_cycling
 from martian_lights.behaviors.time_based_scene_cycling import time_based_scene_cycling
+from martian_lights.behaviors.two_subgroup_cycling import two_subgroup_cycling
 from martian_lights.behaviors.zll_switch_brightness import zll_switch_brightness
 from martian_lights.helpers.schema import action_put, condition
 from martian_lights.helpers.zll_switch import *
@@ -64,21 +64,14 @@ def make_living_room(ml):
 			display_name='Living room brightness',
 		)
 
-	subset_cycling(
-		ml.namespace('subset'),
-		switch_sensor_ids=[s.sensor_id for s in switches],
-		advance_event=zll_switch_event(ZLLSwitchButtonType.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
-		reset_event=zll_switch_event(ZLLSwitchButtonType.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		extra_on_conditions=[
-			condition(f'/sensors/{scene_cycle_state_id}/state/status', 'gt', '1'),
+	two_subgroup_cycling(
+		ml.namespace('subgroup'),
+		# these groups already exist
+		subgroups=[
+			6, # LR Dining
+			5, # LR Couch
 		],
-		group_id=group_id,
-		subsets=[
-			['1', '2', '3', '9', '10'],
-			['1', '2', '3'],
-			['9', '10'],
-		],
-		display_name='Living room subset',
+		advance_conditions=[s.bottom().short_release() for s in switches],
 	)
 
 
@@ -135,21 +128,23 @@ def make_office(ml):
 		display_name='Office brightness',
 	)
 
-	subset_cycling(
-		ml.namespace('subset'),
-		switch_sensor_ids=[switch_id],
-		advance_event=zll_switch_event(ZLLSwitchButton.BOTTOM, ZLLSwitchEventType.SHORT_RELEASE),
-		reset_event=zll_switch_event(ZLLSwitchButton.TOP, ZLLSwitchEventType.INITIAL_PRESS),
-		extra_on_conditions=[
-			condition(f'/sensors/{scene_cycle_state_id}/state/status', 'gt', '1'),
-		],
-		group_id=group_id,
-		subsets=[
-			['4', '5', '6', '11'],
-			['4', '5', '6'],
-			['11'],
-		],
-		display_name='Office subset',
+	# these groups are created with type: LightGroup, so they do not appear on
+	# the mobile app
+	overhead_group = ml.resource(
+		'groups',
+		'overhead_group',
+		{'name': 'OF Overhead', 'lights': ['4', '5', '6']},
+	)
+	table_lamp_group = ml.resource(
+		'groups',
+		'table_lamp_group',
+		{'name': 'OF Table', 'lights': ['11']},
+	)
+
+	two_subgroup_cycling(
+		ml.namespace('subgroup'),
+		subgroups=[overhead_group, table_lamp_group],
+		advance_conditions=[switch.bottom().short_release()],
 	)
 
 

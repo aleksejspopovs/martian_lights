@@ -13,6 +13,8 @@ def subset_cycling(
 	"""
 	A behavior that makes a button cycle through a pre-determined list of
 	subsets of lights in a room.
+
+	DEPRECATED: I have no use for this that isn't better served by two_subgroup_cycling.
 	"""
 	extra_on_conditions = extra_on_conditions or []
 
