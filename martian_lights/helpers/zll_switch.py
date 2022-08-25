@@ -28,11 +28,11 @@ class ZLLSwitchButton:
 
 	def conditions(self, event_type):
 		return [
-			condition(f'/sensors/{switch_sensor_id}/state/lastupdated', 'dx'),
+			condition(f'/sensors/{self.sensor_id}/state/lastupdated', 'dx'),
 			condition(
 				f'/sensors/{self.sensor_id}/state/buttonevent',
 				'eq',
-				zll_switch_event(self.button_type, self.event_type)
+				zll_switch_event(self.button_type, event_type)
 			),
 		]
 
