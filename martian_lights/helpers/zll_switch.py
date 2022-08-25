@@ -7,6 +7,10 @@ class ZLLSwitchButtonType(enum.Enum):
 	DIM_UP = 2
 	DIM_DOWN = 3
 	BOTTOM = 4
+	ONE = 1
+	TWO = 2
+	THREE = 3
+	FOUR = 4
 
 class ZLLSwitchEventType(enum.Enum):
 	INITIAL_PRESS = 0
@@ -62,3 +66,15 @@ class ZLLSwitch:
 
 	def bottom(self):
 		return self.button(ZLLSwitchButtonType.BOTTOM)
+
+	def one(self):
+		return self.button(ZLLSwitchButtonType.ONE)
+
+	def two(self):
+		return self.button(ZLLSwitchButtonType.TWO)
+
+	def three(self):
+		return self.button(ZLLSwitchButtonType.THREE)
+
+	def four(self):
+		return self.button(ZLLSwitchButtonType.FOUR)
