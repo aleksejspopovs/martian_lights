@@ -72,7 +72,7 @@ def time_based_scene_cycling(
 				'conditions': conditions_here,
 				'actions': [
 					action_put(cycling_state_addr, {'status': 0}),
-					action_put(group_action_addr, {'on': False, 'transitiontime': 4}),
+					action_put(group_action_addr, {'on': False}),
 				]
 			}
 		)
