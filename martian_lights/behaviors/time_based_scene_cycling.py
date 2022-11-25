@@ -6,8 +6,9 @@ def time_based_scene_cycling(
 	scenes,
 	on_conditions=(),
 	off_conditions=(),
+	toggle_conditions=(),
 	cycle_conditions=(),
-	display_name='Timed scenes'
+	display_name='Timed scenes',
 ):
 	"""
 	A behavior that makes the switch turn the group on to a scene that is picked
@@ -40,24 +41,35 @@ def time_based_scene_cycling(
 	any_on_addr = f'/groups/{group_id}/state/any_on'
 	group_action_addr = f'/groups/{group_id}/action'
 
-	for cond_i, conditions in enumerate(on_conditions):
+	full_on_conditions = [(x, False) for x in on_conditions] + [(x, True) for x in toggle_conditions]
+	full_off_conditions = [(x, False) for x in off_conditions] + [(x, True) for x in toggle_conditions]
+
+	for cond_i, (conditions, needs_check) in enumerate(full_on_conditions):
+		conditions_here = list(conditions)
+		if needs_check:
+			conditions_here.append(condition(any_on_addr, 'eq', 'false'))
+
 		ml.resource(
 			'rules',
 			f'on_{cond_i}',
 			{
 				'name': f'{display_name} on',
-				'conditions': conditions + [condition(any_on_addr, 'eq', 'false')],
+				'conditions': conditions_here,
 				'actions': [action_put(cycling_state_addr, {'status': 1})]
 			}
 		)
 
-	for cond_i, conditions in enumerate(off_conditions):
+	for cond_i, (conditions, needs_check) in enumerate(full_off_conditions):
+		conditions_here = list(conditions)
+		if needs_check:
+			conditions_here.append(condition(any_on_addr, 'eq', 'true'))
+
 		ml.resource(
 			'rules',
 			f'off_{cond_i}',
 			{
 				'name': f'{display_name} off',
-				'conditions': conditions + [condition(any_on_addr, 'eq', 'true')],
+				'conditions': conditions_here,
 				'actions': [
 					action_put(cycling_state_addr, {'status': 0}),
 					action_put(group_action_addr, {'on': False, 'transitiontime': 4}),

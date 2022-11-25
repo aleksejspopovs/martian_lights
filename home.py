@@ -23,8 +23,7 @@ def make_bathroom(ml):
 	time_based_scene_cycling(
 		ml.namespace('scenes'),
 		group_id=group_id,
-		on_conditions=[switch.top().short_release()],
-		off_conditions=[switch.top().short_release()],
+		toggle_conditions=[switch.top().short_release()],
 		cycle_conditions=[switch.top().long_release()],
 		scenes=[
 			('T07:00:00/T12:00:00', '6vIegaD7zCterRy'), # Energize
@@ -51,8 +50,9 @@ def make_living_room(ml):
 	time_based_scene_cycling(
 		ml.namespace(f'scenes'),
 		group_id=foh_group_id,
-		on_conditions=[s.one().short_release() for s in tap_switches] + [couch_switch.top().short_release()],
-		off_conditions=[s.three().short_release() for s in tap_switches] + [couch_switch.top().short_release()],
+		on_conditions=[s.one().short_release() for s in tap_switches],
+		off_conditions=[s.three().short_release() for s in tap_switches],
+		toggle_conditions=[couch_switch.top().short_release()],
 		cycle_conditions=[s.two().short_release() for s in tap_switches],
 		scenes=schedule,
 		display_name='Living room scenes',
@@ -109,8 +109,9 @@ def make_bedroom(ml, scenes):
 	time_based_scene_cycling(
 		ml.namespace('scenes'),
 		group_id=group_id,
-		on_conditions=[wall_switch.top().initial_press(), puck_button.top().initial_press()],
-		off_conditions=[wall_switch.bottom().initial_press(), puck_button.top().initial_press()],
+		on_conditions=[wall_switch.top().initial_press()],
+		off_conditions=[wall_switch.bottom().initial_press()],
+		toggle_conditions=[puck_button.top().initial_press()],
 		cycle_conditions=[wall_switch.top().initial_press(), puck_button.top().long_release()],
 		scenes=[
 			('T07:00:00/T12:00:00', scenes[group_id]['Energize']),
@@ -147,8 +148,7 @@ def make_office(ml):
 	scene_cycle_state_id = time_based_scene_cycling(
 		ml.namespace('scenes'),
 		group_id=group_id,
-		on_conditions=[s.top().initial_press() for s in switches],
-		off_conditions=[s.top().initial_press() for s in switches],
+		toggle_conditions=[s.top().initial_press() for s in switches],
 		cycle_conditions=[s.bottom().long_release() for s in switches],
 		scenes=[
 			('T07:00:00/T10:00:00', 'NppUTl2AYdRNLQF'), # Energize
