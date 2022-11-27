@@ -1,4 +1,5 @@
 from martian_lights.behaviors.group_toggle import group_toggle
+from martian_lights.behaviors.multi_stage_off import multi_stage_off
 from martian_lights.behaviors.rotary_brightness import rotary_brightness
 from martian_lights.behaviors.time_based_scene_cycling import time_based_scene_cycling
 from martian_lights.behaviors.two_subgroup_cycling import two_subgroup_cycling
@@ -81,6 +82,13 @@ def make_living_room(ml):
 			group_id=subgroup_id,
 			conditions=[s.button(button_type).long_release() for s in tap_switches],
 		)
+
+	multi_stage_off(
+		ml.namespace('all_off'),
+		condition_group_id=foh_group_id,
+		target_group_id=0, # all lights in the house
+		conditions=[s.three().short_release() for s in tap_switches],
+	)
 
 	# couch switch
 	lr_group_id = 3
