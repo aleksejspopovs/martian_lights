@@ -146,6 +146,13 @@ def make_bedroom(ml, scenes):
 		fast_rotation_turns_lights_to=None,
 	)
 
+	multi_stage_off(
+		ml.namespace('all_off'),
+		condition_group_id=group_id,
+		target_group_id=0, # all lights in the house
+		conditions=[wall_switch.bottom().initial_press()],
+	)
+
 
 def make_office(ml):
 	group_id = 1
