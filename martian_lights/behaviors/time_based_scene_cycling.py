@@ -8,6 +8,7 @@ def time_based_scene_cycling(
 	off_conditions=(),
 	toggle_conditions=(),
 	cycle_conditions=(),
+	extra_off_actions=(),
 	display_name='Timed scenes',
 ):
 	"""
@@ -71,7 +72,7 @@ def time_based_scene_cycling(
 				'actions': [
 					action_put(cycling_state_addr, {'status': 0}),
 					action_put(group_action_addr, {'on': False}),
-				]
+				] + list(extra_off_actions)
 			}
 		)
 

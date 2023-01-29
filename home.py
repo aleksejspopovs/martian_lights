@@ -4,7 +4,7 @@ from martian_lights.behaviors.rotary_brightness import rotary_brightness
 from martian_lights.behaviors.time_based_scene_cycling import time_based_scene_cycling
 from martian_lights.behaviors.two_subgroup_cycling import two_subgroup_cycling
 from martian_lights.behaviors.zll_switch_brightness import zll_switch_brightness
-from martian_lights.helpers.schema import action_put, condition
+from martian_lights.helpers.schema import action_put, condition, virtual_sensor
 from martian_lights.helpers.zll_switch import *
 
 state_path = 'state.json'
@@ -160,6 +160,25 @@ def make_office(ml):
 	desk_switch = ZLLSwitch(42)
 	switches = [wall_switch, desk_switch]
 
+	# this is a hack to turn on hallway lights at night when office lights are
+	# turned off
+	off_triggered_id = ml.resource('sensors', 'off_triggered', virtual_sensor('Off Triggered'))
+	off_triggered_addr = f'/sensors/{off_triggered_id}/state'
+	ml.resource(
+		'rules',
+		'switch_to_hallway',
+		{
+			'name': 'Office to Hallway',
+			'conditions': [
+				condition(f'{off_triggered_addr}/lastupdated', 'dx'),
+				condition('/config/localtime', 'in', 'T18:00:00/T06:00:00'),
+				condition(f'/groups/0/state/any_on', 'eq', 'false')
+			],
+			'actions': [action_put(f'/groups/10/action', {'scene': '83IINrA9VED9SUd'})],
+		}
+	)
+	
+
 	scene_cycle_state_id = time_based_scene_cycling(
 		ml.namespace('scenes'),
 		group_id=group_id,
@@ -172,6 +191,7 @@ def make_office(ml):
 			('T20:00:00/T23:00:00', 'lZadNORbla8JrLy'), # Relax
 			('T23:00:00/T07:00:00', '2Ne8xZRiXKl00FK'), # Nightlight
 		],
+		extra_off_actions=[action_put(off_triggered_addr, {'status': 1})],
 		display_name='Office scenes',
 	)
 
@@ -216,4 +236,3 @@ def run(ml):
 	make_living_room(ml.namespace('living_room'))
 	make_bedroom(ml.namespace('bedroom'), scenes_by_group)
 	make_office(ml.namespace('office'))
-	pass
